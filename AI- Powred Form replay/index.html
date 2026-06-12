@@ -1,0 +1,1959 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Nexora IT Solutions | Custom Digital Products</title>
+
+    <!-- Fonts (CDN allowed) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      /*****************************************************************
+       * Modern SaaS Landing Page
+       * - Single file: HTML + CSS + JS
+       * - Glassmorphism navbar, hero particles, reveal animations
+       * - n8n webhook form submit via fetch()
+       *****************************************************************/
+
+      :root {
+        --bg0: #f6f7fb;
+        --bg1: #ffffff;
+        --text: rgba(10, 18, 36, 0.92);
+        --muted: rgba(10, 18, 36, 0.65);
+        --card: rgba(255, 255, 255, 0.7);
+        --card-strong: rgba(255, 255, 255, 0.86);
+        --stroke: rgba(255, 255, 255, 0.35);
+        --stroke-strong: rgba(255, 255, 255, 0.6);
+        --shadow: 0 18px 50px rgba(18, 38, 74, 0.12);
+
+        --primary: #6d5efc;
+        --primary2: #22c1c3;
+        --primary3: #ff6bd6;
+        --primary-ink: rgba(255, 255, 255, 0.96);
+
+        --nav-h: 72px;
+        --radius: 18px;
+
+        --focus: 0 0 0 4px rgba(109, 94, 252, 0.22);
+
+        --ease: cubic-bezier(0.2, 0.9, 0.2, 1);
+        --reveal-offset: 14px;
+      }
+
+      /* Dark theme overrides */
+      body[data-theme="dark"] {
+        --bg0: #070a12;
+        --bg1: #0b1220;
+        --text: rgba(245, 248, 255, 0.93);
+        --muted: rgba(245, 248, 255, 0.66);
+        --card: rgba(17, 24, 39, 0.58);
+        --card-strong: rgba(17, 24, 39, 0.78);
+        --stroke: rgba(255, 255, 255, 0.16);
+        --stroke-strong: rgba(255, 255, 255, 0.28);
+        --shadow: 0 18px 60px rgba(0, 0, 0, 0.35);
+        --primary-ink: rgba(255, 255, 255, 0.96);
+        --focus: 0 0 0 4px rgba(34, 193, 195, 0.22);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial,
+          sans-serif;
+        background: radial-gradient(1200px 600px at 20% -10%, rgba(109, 94, 252, 0.18), transparent 55%),
+          radial-gradient(1000px 520px at 90% 10%, rgba(34, 193, 195, 0.14), transparent 55%),
+          linear-gradient(180deg, var(--bg0), var(--bg1));
+        color: var(--text);
+        scroll-behavior: smooth;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      img {
+        max-width: 100%;
+        display: block;
+      }
+
+      .container {
+        width: min(1120px, calc(100% - 40px));
+        margin: 0 auto;
+      }
+
+      /***********************
+       * Loading screen
+       ***********************/
+      .page-loader {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: grid;
+        place-items: center;
+        background:
+          radial-gradient(900px 500px at 20% 10%, rgba(109, 94, 252, 0.25), transparent 60%),
+          radial-gradient(900px 500px at 90% 20%, rgba(34, 193, 195, 0.18), transparent 55%),
+          linear-gradient(180deg, var(--bg0), var(--bg1));
+        transition: opacity 450ms var(--ease), visibility 450ms var(--ease);
+      }
+      .page-loader.is-hidden {
+        opacity: 0;
+        visibility: hidden;
+      }
+
+      .loader-card {
+        width: min(560px, calc(100% - 40px));
+        padding: 26px;
+        border-radius: var(--radius);
+        border: 1px solid var(--stroke);
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.35));
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        text-align: center;
+      }
+
+      body[data-theme="dark"] .loader-card {
+        background: linear-gradient(180deg, rgba(17, 24, 39, 0.72), rgba(17, 24, 39, 0.36));
+      }
+
+      .spinner {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        margin: 6px auto 14px;
+        border: 3px solid rgba(255, 255, 255, 0.45);
+        border-top-color: var(--primary);
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .loader-title {
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+
+      .loader-sub {
+        color: var(--muted);
+        margin-top: 6px;
+        font-size: 14px;
+      }
+
+      /***********************
+       * Scroll progress
+       ***********************/
+      .progress-wrap {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+        height: 4px;
+        pointer-events: none;
+      }
+      .progress-bar {
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(90deg, var(--primary), var(--primary2), var(--primary3));
+        box-shadow: 0 0 20px rgba(109, 94, 252, 0.25);
+        transition: width 120ms linear;
+      }
+
+      /***********************
+       * Navbar
+       ***********************/
+      .nav {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: var(--nav-h);
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+      }
+
+      .nav-inner {
+        width: min(1120px, calc(100% - 40px));
+        margin: 0 auto;
+        height: calc(var(--nav-h) - 18px);
+        border-radius: 999px;
+        padding: 10px 12px;
+        background: rgba(255, 255, 255, 0.18);
+        border: 1px solid var(--stroke);
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      body[data-theme="dark"] .nav-inner {
+        background: rgba(13, 18, 32, 0.34);
+        box-shadow: 0 10px 42px rgba(0, 0, 0, 0.4);
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding-left: 8px;
+      }
+
+      .brand-mark {
+        width: 34px;
+        height: 34px;
+        border-radius: 12px;
+        background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.1) 55%),
+          linear-gradient(135deg, rgba(109, 94, 252, 1), rgba(34, 193, 195, 1));
+        box-shadow: 0 16px 40px rgba(109, 94, 252, 0.28);
+        border: 1px solid rgba(255, 255, 255, 0.35);
+      }
+
+      .brand-name {
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        font-size: 14px;
+        line-height: 1.1;
+      }
+
+      .brand-name span {
+        display: block;
+        font-weight: 600;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .nav-links a {
+        padding: 10px 12px;
+        border-radius: 999px;
+        color: var(--muted);
+        font-weight: 600;
+        font-size: 13px;
+        transition: background 180ms var(--ease), color 180ms var(--ease),
+          transform 180ms var(--ease);
+      }
+
+      .nav-links a:hover {
+        background: rgba(255, 255, 255, 0.2);
+        color: var(--text);
+        transform: translateY(-1px);
+      }
+
+      body[data-theme="dark"] .nav-links a:hover {
+        background: rgba(255, 255, 255, 0.08);
+      }
+
+      .nav-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding-right: 6px;
+      }
+
+      .icon-btn {
+        width: 44px;
+        height: 44px;
+        border-radius: 999px;
+        border: 1px solid var(--stroke);
+        background: rgba(255, 255, 255, 0.14);
+        display: grid;
+        place-items: center;
+        cursor: pointer;
+        transition: transform 200ms var(--ease), background 200ms var(--ease);
+        color: var(--text);
+      }
+
+      .icon-btn:hover {
+        transform: translateY(-1px);
+        background: rgba(255, 255, 255, 0.2);
+      }
+
+      body[data-theme="dark"] .icon-btn {
+        background: rgba(255, 255, 255, 0.06);
+      }
+
+      .icon-btn:focus-visible {
+        outline: none;
+        box-shadow: var(--focus);
+      }
+
+      .hamburger {
+        display: none;
+        width: 44px;
+        height: 44px;
+        border-radius: 14px;
+        border: 1px solid var(--stroke);
+        background: rgba(255, 255, 255, 0.14);
+        cursor: pointer;
+        position: relative;
+      }
+
+      .hamburger span {
+        position: absolute;
+        left: 12px;
+        right: 12px;
+        height: 2px;
+        background: rgba(255, 255, 255, 0.9);
+        transition: transform 200ms var(--ease), top 200ms var(--ease), opacity 200ms var(--ease);
+      }
+
+      .hamburger span:nth-child(1) {
+        top: 15px;
+      }
+      .hamburger span:nth-child(2) {
+        top: 21px;
+      }
+      .hamburger span:nth-child(3) {
+        top: 27px;
+      }
+
+      body[data-theme="dark"] .hamburger span {
+        background: rgba(255, 255, 255, 0.85);
+      }
+
+      .hamburger.is-open span:nth-child(1) {
+        top: 21px;
+        transform: rotate(45deg);
+      }
+      .hamburger.is-open span:nth-child(2) {
+        opacity: 0;
+      }
+      .hamburger.is-open span:nth-child(3) {
+        top: 21px;
+        transform: rotate(-45deg);
+      }
+
+      .mobile-menu {
+        display: none;
+        position: absolute;
+        top: calc(var(--nav-h) - 6px);
+        left: 20px;
+        right: 20px;
+        border-radius: 22px;
+        border: 1px solid var(--stroke);
+        background: rgba(255, 255, 255, 0.22);
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+        padding: 14px;
+      }
+
+      body[data-theme="dark"] .mobile-menu {
+        background: rgba(13, 18, 32, 0.48);
+      }
+
+      .mobile-menu a {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 12px;
+        border-radius: 16px;
+        color: var(--muted);
+        font-weight: 700;
+      }
+
+      .mobile-menu a:hover {
+        background: rgba(255, 255, 255, 0.14);
+        color: var(--text);
+      }
+
+      .mobile-menu.is-open {
+        display: block;
+        animation: popIn 220ms var(--ease) both;
+      }
+
+      @keyframes popIn {
+        from {
+          opacity: 0;
+          transform: translateY(-10px) scale(0.98);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+
+      /***********************
+       * Sections + reveal
+       ***********************/
+      main {
+        padding-top: calc(var(--nav-h) + 26px);
+      }
+
+      section {
+        padding: 76px 0;
+        position: relative;
+      }
+
+      .section-title {
+        font-size: clamp(22px, 3vw, 30px);
+        letter-spacing: -0.03em;
+        margin: 0;
+      }
+
+      .section-sub {
+        margin: 10px 0 0;
+        color: var(--muted);
+        max-width: 62ch;
+        line-height: 1.6;
+      }
+
+      .reveal {
+        opacity: 0;
+        transform: translateY(var(--reveal-offset));
+        filter: blur(4px);
+        transition: opacity 700ms var(--ease), transform 700ms var(--ease), filter 700ms var(--ease);
+      }
+
+      .reveal.is-visible {
+        opacity: 1;
+        transform: translateY(0);
+        filter: blur(0);
+      }
+
+      /***********************
+       * Hero / Home
+       ***********************/
+      .hero {
+        padding-top: 26px;
+      }
+
+      .hero-grid {
+        display: grid;
+        grid-template-columns: 1.1fr 0.9fr;
+        gap: 28px;
+        align-items: center;
+      }
+
+      @media (max-width: 900px) {
+        .hero-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .hero-copy h1 {
+        margin: 0;
+        font-size: clamp(34px, 4.6vw, 56px);
+        letter-spacing: -0.05em;
+        line-height: 1.02;
+      }
+
+      .gradient-text {
+        background: linear-gradient(90deg, var(--primary), var(--primary2), var(--primary3));
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+
+      .hero-copy p {
+        margin: 16px 0 0;
+        color: var(--muted);
+        font-size: 16px;
+        line-height: 1.7;
+        max-width: 56ch;
+      }
+
+      .hero-cta {
+        margin-top: 22px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        flex-wrap: wrap;
+      }
+
+      .btn {
+        position: relative;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        border-radius: 999px;
+        padding: 13px 16px;
+        font-weight: 800;
+        font-size: 14px;
+        cursor: pointer;
+        transition: transform 200ms var(--ease), box-shadow 200ms var(--ease), background 200ms var(--ease);
+        overflow: hidden;
+        user-select: none;
+      }
+
+      .btn:focus-visible {
+        outline: none;
+        box-shadow: var(--focus);
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, rgba(109, 94, 252, 1), rgba(34, 193, 195, 1));
+        color: var(--primary-ink);
+        box-shadow: 0 18px 55px rgba(109, 94, 252, 0.28);
+      }
+
+      .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 22px 70px rgba(109, 94, 252, 0.34);
+      }
+
+      .btn-ghost {
+        background: rgba(255, 255, 255, 0.12);
+        border-color: var(--stroke);
+        color: var(--text);
+      }
+
+      body[data-theme="dark"] .btn-ghost {
+        background: rgba(255, 255, 255, 0.06);
+      }
+
+      .btn-ghost:hover {
+        transform: translateY(-2px);
+        background: rgba(255, 255, 255, 0.18);
+      }
+
+      .btn small {
+        display: block;
+        margin-top: 3px;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.8);
+      }
+
+      body[data-theme="dark"] .btn-ghost small {
+        color: rgba(255, 255, 255, 0.75);
+      }
+
+      /* Ripple effect */
+      .ripple-btn {
+        position: relative;
+      }
+      .ripple-btn .ripple {
+        position: absolute;
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        width: 18px;
+        height: 18px;
+        pointer-events: none;
+        background: rgba(255, 255, 255, 0.55);
+        animation: ripple 650ms var(--ease) forwards;
+        mix-blend-mode: overlay;
+      }
+
+      @keyframes ripple {
+        from {
+          opacity: 0.55;
+          width: 10px;
+          height: 10px;
+        }
+        to {
+          opacity: 0;
+          width: 260px;
+          height: 260px;
+        }
+      }
+
+      .hero-art {
+        position: relative;
+        min-height: 420px;
+        border-radius: 26px;
+      }
+
+      @media (max-width: 900px) {
+        .hero-art {
+          min-height: 360px;
+        }
+      }
+
+      .hero-art::before {
+        content: "";
+        position: absolute;
+        inset: -2px;
+        border-radius: 26px;
+        background: linear-gradient(135deg, rgba(109, 94, 252, 0.45), rgba(34, 193, 195, 0.35), rgba(255, 107, 214, 0.25));
+        filter: blur(18px);
+        opacity: 0.6;
+        z-index: 0;
+      }
+
+      .hero-art .glass {
+        position: absolute;
+        inset: 0;
+        border-radius: 26px;
+        border: 1px solid var(--stroke);
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.06));
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+        z-index: 1;
+      }
+
+      body[data-theme="dark"] .hero-art .glass {
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
+      }
+
+      .hero-art canvas {
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+
+      .hero-metrics {
+        position: absolute;
+        left: 18px;
+        right: 18px;
+        bottom: 16px;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+        z-index: 2;
+      }
+
+      @media (max-width: 520px) {
+        .hero-metrics {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .metric {
+        padding: 12px 12px;
+        border-radius: 18px;
+        border: 1px solid var(--stroke);
+        background: rgba(255, 255, 255, 0.12);
+      }
+
+      body[data-theme="dark"] .metric {
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      .metric strong {
+        font-size: 18px;
+        letter-spacing: -0.03em;
+      }
+
+      .metric span {
+        display: block;
+        margin-top: 4px;
+        color: var(--muted);
+        font-weight: 600;
+        font-size: 12px;
+      }
+
+      /***********************
+       * Cards / content
+       ***********************/
+      .cards {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px;
+        margin-top: 26px;
+      }
+
+      @media (max-width: 980px) {
+        .cards {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .card {
+        border-radius: var(--radius);
+        border: 1px solid var(--stroke);
+        background: var(--card);
+        box-shadow: 0 16px 60px rgba(0, 0, 0, 0.06);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        padding: 18px;
+        transition: transform 220ms var(--ease), box-shadow 220ms var(--ease), border-color 220ms var(--ease);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 22px 80px rgba(0, 0, 0, 0.1);
+        border-color: var(--stroke-strong);
+      }
+
+      .card::after {
+        content: "";
+        position: absolute;
+        top: -60px;
+        right: -60px;
+        width: 140px;
+        height: 140px;
+        border-radius: 50%;
+        background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.0) 55%);
+        transform: translateY(20px);
+        opacity: 0.35;
+        transition: transform 220ms var(--ease);
+      }
+
+      .card:hover::after {
+        transform: translateY(0);
+      }
+
+      .card .card-head {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .card .dot {
+        width: 44px;
+        height: 44px;
+        border-radius: 16px;
+        border: 1px solid var(--stroke);
+        display: grid;
+        place-items: center;
+        background: rgba(255, 255, 255, 0.12);
+      }
+
+      .card h3 {
+        margin: 0;
+        letter-spacing: -0.03em;
+        font-size: 16px;
+      }
+
+      .card p {
+        margin: 10px 0 0;
+        color: var(--muted);
+        line-height: 1.65;
+        font-size: 14px;
+      }
+
+      /***********************
+       * Projects
+       ***********************/
+      .projects-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px;
+        margin-top: 26px;
+      }
+
+      @media (max-width: 1020px) {
+        .projects-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .project {
+        border-radius: var(--radius);
+        border: 1px solid var(--stroke);
+        background: var(--card);
+        overflow: hidden;
+        position: relative;
+        transition: transform 240ms var(--ease), border-color 240ms var(--ease), box-shadow 240ms var(--ease);
+        box-shadow: 0 16px 60px rgba(0, 0, 0, 0.05);
+      }
+
+      .project:hover {
+        transform: translateY(-8px) scale(1.01);
+        border-color: var(--stroke-strong);
+        box-shadow: 0 26px 90px rgba(0, 0, 0, 0.11);
+      }
+
+      .project .thumb {
+        height: 190px;
+        background:
+          radial-gradient(120px 120px at 25% 25%, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0) 60%),
+          linear-gradient(135deg, rgba(109, 94, 252, 0.55), rgba(34, 193, 195, 0.35));
+        display: grid;
+        place-items: center;
+        position: relative;
+      }
+
+      .project .thumb::before {
+        content: "";
+        position: absolute;
+        inset: -30px;
+        background: linear-gradient(90deg, rgba(255, 107, 214, 0.22), rgba(34, 193, 195, 0.20), rgba(109, 94, 252, 0.22));
+        filter: blur(26px);
+        opacity: 0.8;
+      }
+
+      .project .thumb svg {
+        position: relative;
+        z-index: 1;
+        width: 56px;
+        height: 56px;
+        opacity: 0.95;
+      }
+
+      .project .body {
+        padding: 16px 16px 18px;
+      }
+
+      .project h3 {
+        margin: 0;
+        font-size: 16px;
+        letter-spacing: -0.03em;
+      }
+
+      .project p {
+        margin: 10px 0 0;
+        color: var(--muted);
+        line-height: 1.65;
+        font-size: 14px;
+      }
+
+      .tag-row {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 12px;
+      }
+
+      .tag {
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--muted);
+        border: 1px solid var(--stroke);
+        padding: 7px 10px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.08);
+      }
+
+      /***********************
+       * Clients slider (marquee)
+       ***********************/
+      .slider-shell {
+        margin-top: 26px;
+        border-radius: 26px;
+        border: 1px solid var(--stroke);
+        background: rgba(255, 255, 255, 0.14);
+        box-shadow: 0 16px 60px rgba(0, 0, 0, 0.05);
+        overflow: hidden;
+        position: relative;
+      }
+
+      body[data-theme="dark"] .slider-shell {
+        background: rgba(255, 255, 255, 0.06);
+      }
+
+      .slider-shell::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background:
+          linear-gradient(90deg, var(--bg1), rgba(255, 255, 255, 0) 12%, rgba(255, 255, 255, 0) 88%, var(--bg1));
+        opacity: 0.9;
+      }
+
+      .slider-track {
+        display: flex;
+        width: max-content;
+        gap: 14px;
+        padding: 18px 20px;
+        animation: marquee 22s linear infinite;
+      }
+
+      .slider-shell:hover .slider-track {
+        animation-play-state: paused;
+      }
+
+      @keyframes marquee {
+        from {
+          transform: translateX(0);
+        }
+        to {
+          transform: translateX(-50%);
+        }
+      }
+
+      .logo-pill {
+        min-width: 176px;
+        height: 64px;
+        border-radius: 18px;
+        border: 1px solid var(--stroke);
+        background: rgba(255, 255, 255, 0.12);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        padding: 0 18px;
+      }
+
+      body[data-theme="dark"] .logo-pill {
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      .logo-mark {
+        width: 34px;
+        height: 34px;
+        border-radius: 14px;
+        border: 1px solid var(--stroke);
+        background: linear-gradient(135deg, rgba(109, 94, 252, 0.45), rgba(34, 193, 195, 0.35));
+      }
+
+      .logo-pill strong {
+        font-size: 14px;
+        letter-spacing: -0.02em;
+      }
+
+      /***********************
+       * Contact form
+       ***********************/
+      .contact-grid {
+        display: grid;
+        grid-template-columns: 1.05fr 0.95fr;
+        gap: 20px;
+        align-items: start;
+        margin-top: 26px;
+      }
+
+      @media (max-width: 980px) {
+        .contact-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .form-shell {
+        border-radius: 26px;
+        border: 1px solid var(--stroke);
+        background: var(--card);
+        box-shadow: 0 18px 60px rgba(0, 0, 0, 0.06);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        padding: 18px;
+      }
+
+      .form-shell h3 {
+        margin: 8px 8px 0;
+        letter-spacing: -0.03em;
+      }
+
+      .form {
+        display: grid;
+        gap: 14px;
+        padding: 10px 8px 8px;
+      }
+
+      .field {
+        display: grid;
+        gap: 8px;
+      }
+
+      label {
+        font-weight: 800;
+        font-size: 13px;
+        letter-spacing: -0.01em;
+      }
+
+      input,
+      textarea {
+        width: 100%;
+        padding: 12px 13px;
+        border-radius: 16px;
+        border: 1px solid var(--stroke);
+        background: rgba(255, 255, 255, 0.12);
+        color: var(--text);
+        outline: none;
+        transition: box-shadow 200ms var(--ease), border-color 200ms var(--ease), background 200ms var(--ease);
+      }
+
+      body[data-theme="dark"] input,
+      body[data-theme="dark"] textarea {
+        background: rgba(255, 255, 255, 0.06);
+      }
+
+      input::placeholder,
+      textarea::placeholder {
+        color: rgba(10, 18, 36, 0.35);
+      }
+
+      body[data-theme="dark"] input::placeholder,
+      body[data-theme="dark"] textarea::placeholder {
+        color: rgba(245, 248, 255, 0.35);
+      }
+
+      input:focus,
+      textarea:focus {
+        box-shadow: var(--focus);
+        border-color: rgba(109, 94, 252, 0.45);
+        background: rgba(255, 255, 255, 0.16);
+      }
+
+      textarea {
+        min-height: 130px;
+        resize: vertical;
+      }
+
+      .form-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .submit-btn {
+        border-radius: 999px;
+        padding: 13px 16px;
+        min-width: 210px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+      }
+
+      .submit-spinner {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        border: 2px solid rgba(255, 255, 255, 0.35);
+        border-top-color: rgba(255, 255, 255, 0.95);
+        animation: spin 1s linear infinite;
+        display: none;
+      }
+
+      .submit-btn.is-loading .submit-spinner {
+        display: inline-block;
+      }
+
+      .submit-btn[disabled] {
+        cursor: not-allowed;
+        opacity: 0.75;
+        transform: none !important;
+        box-shadow: 0 10px 40px rgba(109, 94, 252, 0.18) !important;
+      }
+
+      .status {
+        margin-top: 2px;
+        padding: 12px 14px;
+        border-radius: 16px;
+        border: 1px solid var(--stroke);
+        background: rgba(255, 255, 255, 0.1);
+        color: var(--muted);
+        display: none;
+      }
+
+      .status.is-visible {
+        display: block;
+        animation: fadeIn 200ms var(--ease) both;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(6px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .status.success {
+        border-color: rgba(34, 193, 195, 0.45);
+        color: rgba(34, 193, 195, 0.95);
+      }
+
+      .status.error {
+        border-color: rgba(255, 107, 214, 0.35);
+        color: rgba(255, 107, 214, 0.95);
+      }
+
+      .contact-aside {
+        border-radius: 26px;
+        border: 1px solid var(--stroke);
+        background: rgba(255, 255, 255, 0.14);
+        box-shadow: 0 18px 60px rgba(0, 0, 0, 0.05);
+        padding: 18px;
+        position: sticky;
+        top: calc(var(--nav-h) + 18px);
+        overflow: hidden;
+      }
+
+      body[data-theme="dark"] .contact-aside {
+        background: rgba(255, 255, 255, 0.06);
+      }
+
+      @media (max-width: 980px) {
+        .contact-aside {
+          position: relative;
+          top: auto;
+        }
+      }
+
+      .aside-head {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .aside-head .badge {
+        width: 46px;
+        height: 46px;
+        border-radius: 18px;
+        border: 1px solid var(--stroke);
+        background: linear-gradient(135deg, rgba(109, 94, 252, 0.32), rgba(34, 193, 195, 0.22));
+        display: grid;
+        place-items: center;
+      }
+
+      .aside-head h3 {
+        margin: 0;
+        letter-spacing: -0.03em;
+      }
+
+      .aside-list {
+        margin: 14px 0 0;
+        padding: 0;
+        list-style: none;
+        display: grid;
+        gap: 10px;
+      }
+
+      .aside-item {
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+        color: var(--muted);
+        line-height: 1.6;
+        font-weight: 600;
+        font-size: 14px;
+      }
+
+      .check {
+        width: 18px;
+        height: 18px;
+        border-radius: 7px;
+        background: rgba(34, 193, 195, 0.16);
+        border: 1px solid rgba(34, 193, 195, 0.36);
+        display: grid;
+        place-items: center;
+        margin-top: 2px;
+        flex: 0 0 auto;
+      }
+
+      .foot {
+        padding: 26px 0 56px;
+        color: var(--muted);
+        font-weight: 600;
+        font-size: 13px;
+      }
+
+      .divider {
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+        margin: 20px 0 0;
+        opacity: 0.55;
+      }
+
+      body[data-theme="dark"] .divider {
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.22), transparent);
+      }
+
+      /***********************
+       * Footer / spacing
+       ***********************/
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border-width: 0;
+      }
+
+      /***********************
+       * Responsive navbar
+       ***********************/
+      @media (max-width: 860px) {
+        .nav-links {
+          display: none;
+        }
+        .hamburger {
+          display: block;
+        }
+        .mobile-menu {
+          display: none;
+        }
+        .nav-actions {
+          padding-right: 0;
+        }
+      }
+
+      /***********************
+       * Reduce motion
+       ***********************/
+      @media (prefers-reduced-motion: reduce) {
+        html,
+        body {
+          scroll-behavior: auto;
+        }
+        .reveal {
+          transition: none;
+          transform: none;
+          filter: none;
+          opacity: 1;
+        }
+        .slider-track {
+          animation: none;
+        }
+        .ripple-btn .ripple {
+          animation: none;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- Loader -->
+    <div class="page-loader" id="pageLoader" aria-hidden="true">
+      <div class="loader-card">
+        <div class="spinner"></div>
+        <div class="loader-title">Preparing your experience</div>
+        <div class="loader-sub">Polishing the experience... one moment</div>
+      </div>
+    </div>
+
+    <!-- Scroll progress -->
+    <div class="progress-wrap" aria-hidden="true">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <!-- Navbar -->
+    <header class="nav">
+      <div class="nav-inner">
+        <a class="brand" href="#home" data-scroll>
+          <div class="brand-mark" aria-hidden="true"></div>
+          <div class="brand-name">
+            Nexora IT
+            <span>Custom IT Solutions</span>
+          </div>
+        </a>
+
+        <nav class="nav-links" aria-label="Primary navigation">
+          <a href="#home" data-scroll>Home</a>
+          <a href="#content" data-scroll>Content</a>
+          <a href="#projects" data-scroll>Projects</a>
+          <a href="#clients" data-scroll>Clients</a>
+          <a href="#contact" data-scroll>Contact</a>
+        </nav>
+
+        <div class="nav-actions">
+          <!-- Dark mode toggle -->
+          <button class="icon-btn" id="themeToggle" type="button" aria-label="Toggle dark mode">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path
+                d="M21 12.4A9 9 0 1 1 11.6 3a7 7 0 1 0 9.4 9.4Z"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </button>
+
+          <!-- Mobile hamburger -->
+          <button class="hamburger" id="hamburger" type="button" aria-label="Open menu" aria-expanded="false">
+            <span></span><span></span><span></span>
+          </button>
+        </div>
+      </div>
+
+      <div class="mobile-menu" id="mobileMenu" aria-label="Mobile navigation">
+        <a href="#home" data-scroll>Home <span aria-hidden="true">→</span></a>
+        <a href="#content" data-scroll>Content <span aria-hidden="true">→</span></a>
+        <a href="#projects" data-scroll>Projects <span aria-hidden="true">→</span></a>
+        <a href="#clients" data-scroll>Clients <span aria-hidden="true">→</span></a>
+        <a href="#contact" data-scroll>Contact <span aria-hidden="true">→</span></a>
+      </div>
+    </header>
+
+    <main>
+      <!-- Home -->
+      <section class="hero" id="home">
+        <div class="container">
+          <div class="hero-grid">
+            <div class="hero-copy reveal">
+              <h1>
+                <span class="gradient-text">Build Better Digital Products with Nexora IT</span>
+              </h1>
+              <p>
+                We design and develop websites, web apps, and business software for growing companies.
+                Explore our services and past projects, then book a meeting with our team.
+              </p>
+
+              <div class="hero-cta">
+                <a class="btn btn-primary ripple-btn" href="#contact" data-scroll>
+                  Get Started
+                </a>
+                <a class="btn btn-ghost ripple-btn" href="#projects" data-scroll>
+                  See Projects
+                </a>
+              </div>
+            </div>
+
+            <div class="hero-art reveal" aria-hidden="true">
+              <div class="glass">
+                <canvas id="heroCanvas"></canvas>
+                <div class="hero-metrics">
+                  <div class="metric">
+                    <strong>50+ Projects</strong>
+                    <span>Delivered</span>
+                  </div>
+                  <div class="metric">
+                    <strong>10+ Years</strong>
+                    <span>IT experience</span>
+                  </div>
+                  <div class="metric">
+                    <strong>Global</strong>
+                    <span>Client support</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Content -->
+      <section id="content">
+        <div class="container">
+          <h2 class="section-title reveal">IT services for modern businesses</h2>
+          <p class="section-sub reveal">
+            From company websites to full business platforms, we build secure and scalable digital
+            solutions tailored to your goals, users, and workflow.
+          </p>
+
+          <div class="cards">
+            <article class="card reveal">
+              <div class="card-head">
+                <div class="dot" aria-hidden="true">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                    <path d="M7 7h10v10H7z" stroke="currentColor" stroke-width="2" />
+                    <path d="M4 9V5a1 1 0 0 1 1-1h4" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                    <path d="M20 15v4a1 1 0 0 1-1 1h-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                  </svg>
+                </div>
+                <h3>Custom Website Development</h3>
+              </div>
+              <p>Modern, responsive websites built to represent your brand and convert visitors into customers.</p>
+            </article>
+
+            <article class="card reveal">
+              <div class="card-head">
+                <div class="dot" aria-hidden="true">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                    <path d="M20 7 10 17l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                </div>
+                <h3>Business Web Applications</h3>
+              </div>
+              <p>Tailored web applications that automate operations, improve productivity, and support growth.</p>
+            </article>
+
+            <article class="card reveal">
+              <div class="card-head">
+                <div class="dot" aria-hidden="true">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" stroke="currentColor" stroke-width="2" />
+                  </svg>
+                </div>
+                <h3>Ongoing Maintenance & Support</h3>
+              </div>
+              <p>Reliable support, performance optimization, and feature upgrades after launch.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- Projects -->
+      <section id="projects">
+        <div class="container">
+          <h2 class="section-title reveal">Recent client projects</h2>
+          <p class="section-sub reveal">Examples of the websites and systems we created for real-world business needs.</p>
+
+          <div class="projects-grid">
+            <article class="project reveal">
+              <div class="thumb" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M4 7h16v10H4z" stroke="currentColor" stroke-width="2" />
+                  <path d="M8 11h8" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                  <path d="M9 3h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                </svg>
+              </div>
+              <div class="body">
+                <h3>Urban Bite Restaurant Website</h3>
+                <p>Designed and launched a modern website with online menu, booking requests, and local SEO setup.</p>
+                <div class="tag-row">
+                  <span class="tag">Branding</span>
+                  <span class="tag">Responsive UI</span>
+                </div>
+              </div>
+            </article>
+
+            <article class="project reveal">
+              <div class="thumb" aria-hidden="true" style="background: linear-gradient(135deg, rgba(34, 193, 195, 0.45), rgba(255, 107, 214, 0.32));">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M12 2v20" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                  <path d="M7 7h10" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                  <path d="M7 17h10" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                </svg>
+              </div>
+              <div class="body">
+                <h3>FinEdge CRM Dashboard</h3>
+                <p>Built a custom dashboard for lead tracking, sales workflow, and performance reporting.</p>
+                <div class="tag-row">
+                  <span class="tag">Dashboard</span>
+                  <span class="tag">CRM Tools</span>
+                </div>
+              </div>
+            </article>
+
+            <article class="project reveal">
+              <div class="thumb" aria-hidden="true" style="background: linear-gradient(135deg, rgba(109, 94, 252, 0.48), rgba(255, 107, 214, 0.30));">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M7 7h10v10H7z" stroke="currentColor" stroke-width="2" />
+                  <path d="M9 12h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                  <path d="M12 9v6" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                </svg>
+              </div>
+              <div class="body">
+                <h3>HealthPro Clinic Portal</h3>
+                <p>Developed a secure patient portal for appointments, records access, and communication.</p>
+                <div class="tag-row">
+                  <span class="tag">Security</span>
+                  <span class="tag">Portal</span>
+                </div>
+              </div>
+            </article>
+
+            <article class="project reveal">
+              <div class="thumb" aria-hidden="true" style="background: linear-gradient(135deg, rgba(34, 193, 195, 0.40), rgba(109, 94, 252, 0.36));">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                  <path d="M12 5v14" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                  <path d="M7 7h0" stroke="currentColor" stroke-width="4" stroke-linecap="round" />
+                  <path d="M17 17h0" stroke="currentColor" stroke-width="4" stroke-linecap="round" />
+                </svg>
+              </div>
+              <div class="body">
+                <h3>BuildMart eCommerce Platform</h3>
+                <p>Created a scalable eCommerce store with catalog management, payments, and order tracking.</p>
+                <div class="tag-row">
+                  <span class="tag">eCommerce</span>
+                  <span class="tag">Payments</span>
+                </div>
+              </div>
+            </article>
+
+            <article class="project reveal">
+              <div class="thumb" aria-hidden="true" style="background: linear-gradient(135deg, rgba(255, 107, 214, 0.30), rgba(34, 193, 195, 0.28));">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M6 8l6-4 6 4v8l-6 4-6-4V8Z" stroke="currentColor" stroke-width="2" />
+                  <path d="M12 12l6-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                </svg>
+              </div>
+              <div class="body">
+                <h3>Skyline Real Estate Platform</h3>
+                <p>Implemented a property listing website with smart search, inquiry forms, and admin controls.</p>
+                <div class="tag-row">
+                  <span class="tag">Listings</span>
+                  <span class="tag">Admin Panel</span>
+                </div>
+              </div>
+            </article>
+
+            <article class="project reveal">
+              <div class="thumb" aria-hidden="true" style="background: linear-gradient(135deg, rgba(109, 94, 252, 0.42), rgba(34, 193, 195, 0.26));">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M8 12h8" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                  <path d="M12 8v8" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                  <path d="M4 6h16v12H4z" stroke="currentColor" stroke-width="2" />
+                </svg>
+              </div>
+              <div class="body">
+                <h3>EduSpark Learning System</h3>
+                <p>Delivered an LMS platform with course management, student progress tracking, and analytics.</p>
+                <div class="tag-row">
+                  <span class="tag">LMS</span>
+                  <span class="tag">Analytics</span>
+                </div>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- Clients -->
+      <section id="clients">
+        <div class="container">
+          <h2 class="section-title reveal">Trusted by growing businesses</h2>
+          <p class="section-sub reveal">
+            Companies across industries partner with us to build reliable digital products and long-term IT systems.
+          </p>
+
+          <div class="slider-shell reveal" role="region" aria-label="Clients slider">
+            <div class="slider-track" id="logoTrack">
+              <!-- Duplicate list for seamless marquee -->
+              <div class="logo-pill"><div class="logo-mark"></div><strong>Urban Bite</strong></div>
+              <div class="logo-pill"><div class="logo-mark"></div><strong>FinEdge</strong></div>
+              <div class="logo-pill"><div class="logo-mark"></div><strong>HealthPro</strong></div>
+              <div class="logo-pill"><div class="logo-mark"></div><strong>BuildMart</strong></div>
+              <div class="logo-pill"><div class="logo-mark"></div><strong>Skyline Realty</strong></div>
+              <div class="logo-pill"><div class="logo-mark"></div><strong>EduSpark</strong></div>
+
+              <div class="logo-pill"><div class="logo-mark"></div><strong>Urban Bite</strong></div>
+              <div class="logo-pill"><div class="logo-mark"></div><strong>FinEdge</strong></div>
+              <div class="logo-pill"><div class="logo-mark"></div><strong>HealthPro</strong></div>
+              <div class="logo-pill"><div class="logo-mark"></div><strong>BuildMart</strong></div>
+              <div class="logo-pill"><div class="logo-mark"></div><strong>Skyline Realty</strong></div>
+              <div class="logo-pill"><div class="logo-mark"></div><strong>EduSpark</strong></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Contact -->
+      <section id="contact">
+        <div class="container">
+          <h2 class="section-title reveal">Book a project meeting</h2>
+          <p class="section-sub reveal">Tell us about your business idea. Our team will review your request and schedule a meeting.</p>
+
+          <div class="contact-grid">
+            <div class="form-shell reveal">
+              <h3>Meeting request form</h3>
+
+              <form class="form" id="leadForm">
+                <div class="field">
+                  <label for="name">Name</label>
+                  <input id="name" name="name" type="text" placeholder="Your full name" autocomplete="name" required maxlength="80" />
+                </div>
+
+                <div class="field">
+                  <label for="email">Email</label>
+                  <input id="email" name="email" type="email" placeholder="you@company.com" autocomplete="email" required maxlength="120" />
+                </div>
+
+                <div class="field">
+                  <label for="phone">Phone Number</label>
+                  <input id="phone" name="phone" type="tel" placeholder="Your phone number" autocomplete="tel" required maxlength="20" />
+                </div>
+
+                <div class="field">
+                  <label for="message">Project requirements</label>
+                  <textarea id="message" name="message" placeholder="Tell us about your business, required website/app features, and timeline..." required maxlength="2000"></textarea>
+                </div>
+
+                <div class="form-actions">
+                  <button
+                    class="btn btn-primary submit-btn ripple-btn"
+                    type="submit"
+                    id="submitBtn"
+                    aria-label="Send message"
+                  >
+                    <span>Send</span>
+                    <span class="submit-spinner" aria-hidden="true"></span>
+                  </button>
+
+                  <div class="status" id="statusBox" role="status" aria-live="polite"></div>
+                </div>
+
+                <div class="sr-only" id="formHint">
+                  This form submits to an n8n webhook using fetch and displays a success or error message.
+                </div>
+              </form>
+            </div>
+
+            <aside class="contact-aside reveal" aria-label="What happens next">
+              <div class="aside-head">
+                <div class="badge" aria-hidden="true">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 2 2 7l10 5 10-5-10-5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
+                    <path d="m2 17 10 5 10-5" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
+                    <path d="m2 12 10 5 10-5" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
+                  </svg>
+                </div>
+                <div>
+                  <h3>What happens after submission</h3>
+                </div>
+              </div>
+
+              <ul class="aside-list">
+                <li class="aside-item">
+                  <div class="check" aria-hidden="true">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                      <path d="M20 6 9 17l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                  </div>
+                  Your request is sent instantly to our team through the secure webhook flow.
+                </li>
+                <li class="aside-item">
+                  <div class="check" aria-hidden="true">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                      <path d="M20 6 9 17l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                  </div>
+                  We review your goals and prepare a custom solution roadmap.
+                </li>
+                <li class="aside-item">
+                  <div class="check" aria-hidden="true">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                      <path d="M20 6 9 17l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                  </div>
+                  You receive a response to confirm a discovery meeting.
+                </li>
+              </ul>
+            </aside>
+          </div>
+        </div>
+      </section>
+
+      <footer class="foot">
+        <div class="container">
+          <div class="divider"></div>
+          <div style="margin-top: 16px;">
+            © <span id="year"></span> Nexora IT Solutions. Building digital products for businesses.
+          </div>
+        </div>
+      </footer>
+    </main>
+
+    <script>
+      /*****************************************************************
+       * JS: Animations, navigation smooth scroll offset, dark mode,
+       * scroll progress, hero particles, button ripple, and n8n form submit.
+       *****************************************************************/
+
+      const $ = (sel, root = document) => root.querySelector(sel);
+      const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+
+      // 1) Hide loader after page is fully loaded
+      window.addEventListener("load", () => {
+        const loader = $("#pageLoader");
+        // Use rAF so layout is stable before hiding
+        requestAnimationFrame(() => loader.classList.add("is-hidden"));
+      });
+
+      // 2) Scroll progress bar
+      const progressBar = $("#progressBar");
+      const updateProgress = () => {
+        const doc = document.documentElement;
+        const scrollTop = doc.scrollTop || document.body.scrollTop;
+        const scrollHeight = doc.scrollHeight - doc.clientHeight;
+        const pct = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
+        progressBar.style.width = pct.toFixed(2) + "%";
+      };
+      updateProgress();
+      window.addEventListener("scroll", updateProgress, { passive: true });
+
+      // 3) Reveal animations (IntersectionObserver)
+      const revealEls = $$(".reveal");
+      const io = new IntersectionObserver(
+        (entries) => {
+          for (const e of entries) {
+            if (e.isIntersecting) {
+              e.target.classList.add("is-visible");
+              io.unobserve(e.target);
+            }
+          }
+        },
+        { threshold: 0.12 }
+      );
+      revealEls.forEach((el) => io.observe(el));
+
+      // 4) Smooth scroll with navbar offset
+      const navH = parseInt(getComputedStyle(document.documentElement).getPropertyValue("--nav-h"), 10) || 72;
+      const scrollToSection = (target) => {
+        const el = document.querySelector(target);
+        if (!el) return;
+        const y = el.getBoundingClientRect().top + window.pageYOffset - (navH + 16);
+        window.scrollTo({ top: y, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+      };
+
+      document.addEventListener("click", (e) => {
+        const a = e.target.closest("[data-scroll]");
+        if (!a) return;
+        const href = a.getAttribute("href");
+        if (!href || !href.startsWith("#")) return;
+        e.preventDefault();
+        closeMobileMenu();
+        scrollToSection(href);
+      });
+
+      // 5) Mobile menu toggle
+      const hamburger = $("#hamburger");
+      const mobileMenu = $("#mobileMenu");
+      const closeMobileMenu = () => {
+        hamburger?.classList.remove("is-open");
+        mobileMenu?.classList.remove("is-open");
+        hamburger?.setAttribute("aria-expanded", "false");
+      };
+
+      hamburger?.addEventListener("click", () => {
+        const isOpen = mobileMenu.classList.toggle("is-open");
+        hamburger.classList.toggle("is-open", isOpen);
+        hamburger.setAttribute("aria-expanded", String(isOpen));
+      });
+
+      // Close mobile menu on outside click
+      document.addEventListener("click", (e) => {
+        const isOpen = mobileMenu.classList.contains("is-open");
+        if (!isOpen) return;
+        const clickedInside = e.target.closest("#mobileMenu") || e.target.closest("#hamburger");
+        if (!clickedInside) closeMobileMenu();
+      });
+
+      // 6) Dark mode toggle (persist in localStorage)
+      const themeToggle = $("#themeToggle");
+      const themeKey = "theme";
+      const applyTheme = (t) => {
+        document.body.dataset.theme = t;
+        const isDark = t === "dark";
+        themeToggle?.setAttribute("aria-pressed", String(isDark));
+      };
+
+      const savedTheme = localStorage.getItem(themeKey);
+      if (savedTheme === "light" || savedTheme === "dark") {
+        applyTheme(savedTheme);
+      } else {
+        // Default to OS preference if no saved theme
+        const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+        applyTheme(prefersDark ? "dark" : "light");
+      }
+
+      themeToggle?.addEventListener("click", () => {
+        const current = document.body.dataset.theme === "dark" ? "dark" : "light";
+        const next = current === "dark" ? "light" : "dark";
+        localStorage.setItem(themeKey, next);
+        applyTheme(next);
+      });
+
+      // 7) Ripple effect on buttons/anchors with .ripple-btn
+      const addRipple = (evt) => {
+        const btn = evt.currentTarget;
+        const rect = btn.getBoundingClientRect();
+        const x = evt.clientX - rect.left;
+        const y = evt.clientY - rect.top;
+
+        const span = document.createElement("span");
+        span.className = "ripple";
+        span.style.left = x + "px";
+        span.style.top = y + "px";
+
+        // Clean up previous ripples quickly
+        const existing = btn.querySelectorAll(".ripple");
+        if (existing.length > 6) existing[0].remove();
+
+        btn.appendChild(span);
+        span.addEventListener("animationend", () => span.remove());
+      };
+
+      $$(".ripple-btn").forEach((el) => {
+        el.addEventListener("click", addRipple);
+      });
+
+      // 8) Hero background particles (canvas)
+      const canvas = $("#heroCanvas");
+      const ctx = canvas?.getContext("2d");
+      let rafId = null;
+      let particles = [];
+      let w = 0;
+      let h = 0;
+
+      const rand = (min, max) => Math.random() * (max - min) + min;
+
+      const resize = () => {
+        if (!canvas || !ctx) return;
+        // Use devicePixelRatio for crispness
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        const rect = canvas.getBoundingClientRect();
+        w = Math.max(1, Math.floor(rect.width));
+        h = Math.max(1, Math.floor(rect.height));
+        canvas.width = Math.floor(w * dpr);
+        canvas.height = Math.floor(h * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        const count = Math.round((w * h) / 22000); // density-based
+        const target = Math.min(70, Math.max(30, count));
+        particles = Array.from({ length: target }).map(() => ({
+          x: rand(0, w),
+          y: rand(0, h),
+          r: rand(1.2, 2.6),
+          vx: rand(-0.35, 0.35),
+          vy: rand(-0.2, 0.4),
+          a: rand(0.25, 0.65),
+          hue: rand(210, 290)
+        }));
+      };
+
+      const draw = () => {
+        if (!canvas || !ctx) return;
+        ctx.clearRect(0, 0, w, h);
+
+        // Soft gradient overlay for depth
+        const g = ctx.createLinearGradient(0, 0, w, h);
+        g.addColorStop(0, "rgba(109, 94, 252, 0.18)");
+        g.addColorStop(0.55, "rgba(34, 193, 195, 0.12)");
+        g.addColorStop(1, "rgba(255, 107, 214, 0.10)");
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, w, h);
+
+        // Particles + connections
+        for (let i = 0; i < particles.length; i++) {
+          const p = particles[i];
+          p.x += p.vx;
+          p.y += p.vy;
+
+          // Wrap around
+          if (p.x < -10) p.x = w + 10;
+          if (p.x > w + 10) p.x = -10;
+          if (p.y < -10) p.y = h + 10;
+          if (p.y > h + 10) p.y = -10;
+
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fillStyle = `hsla(${p.hue}, 95%, 70%, ${p.a})`;
+          ctx.fill();
+        }
+
+        // Connections
+        for (let i = 0; i < particles.length; i++) {
+          for (let j = i + 1; j < particles.length; j++) {
+            const a = particles[i];
+            const b = particles[j];
+            const dx = a.x - b.x;
+            const dy = a.y - b.y;
+            const dist = Math.hypot(dx, dy);
+            if (dist < 130) {
+              const alpha = (1 - dist / 130) * 0.35;
+              ctx.strokeStyle = `rgba(255, 255, 255, ${alpha})`;
+              ctx.lineWidth = 1;
+              ctx.beginPath();
+              ctx.moveTo(a.x, a.y);
+              ctx.lineTo(b.x, b.y);
+              ctx.stroke();
+            }
+          }
+        }
+
+        rafId = requestAnimationFrame(draw);
+      };
+
+      const startParticles = () => {
+        resize();
+        if (rafId) cancelAnimationFrame(rafId);
+        rafId = requestAnimationFrame(draw);
+      };
+
+      window.addEventListener("resize", () => {
+        // Debounce lightly
+        clearTimeout(window.__resizeTimer);
+        window.__resizeTimer = setTimeout(startParticles, 150);
+      });
+
+      // Start after the first paint to avoid layout jank
+      requestAnimationFrame(() => startParticles());
+
+      // 9) n8n integration: submit form via fetch()
+      const leadForm = $("#leadForm");
+      const statusBox = $("#statusBox");
+      const submitBtn = $("#submitBtn");
+
+      // n8n webhook URL
+      const WEBHOOK_URL = "http://localhost:5678/webhook-test/efdf7c36-032c-430f-bad1-5eefc0777ad2";
+
+      const setStatus = (kind, text) => {
+        statusBox.classList.add("is-visible");
+        statusBox.classList.remove("success", "error");
+        statusBox.classList.add(kind);
+        statusBox.textContent = text;
+      };
+
+      const clearStatus = () => {
+        statusBox.classList.remove("is-visible", "success", "error");
+        statusBox.textContent = "";
+      };
+
+      const emailLooksValid = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+      leadForm?.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        clearStatus();
+
+        const nameInput = $("#name").value.trim();
+        const emailInput = $("#email").value.trim();
+        const phoneInput = $("#phone").value.trim();
+        const messageInput = $("#message").value.trim();
+
+        if (!nameInput) return setStatus("error", "Please enter your name.");
+        if (!emailLooksValid(emailInput)) return setStatus("error", "Please enter a valid email address.");
+        if (!phoneInput) return setStatus("error", "Please enter your phone number.");
+        if (!messageInput) return setStatus("error", "Please enter a message.");
+
+        submitBtn.classList.add("is-loading");
+        submitBtn.disabled = true;
+
+        // Note: This matches your example structure, but uses your actual input values.
+        // CORS must be enabled on your n8n webhook for browser calls.
+        try {
+          const res = await fetch(WEBHOOK_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              name: nameInput,
+              email: emailInput,
+              phone: phoneInput,
+              message: messageInput
+            })
+          });
+
+          if (!res.ok) {
+            // Try to read server error details (best-effort)
+            let errText = "";
+            try {
+              errText = await res.text();
+            } catch (_) {}
+            throw new Error(errText || `Request failed with status ${res.status}`);
+          }
+
+          setStatus("success", "Thanks! Our team will contact you soon to schedule a meeting 🚀");
+          leadForm.reset();
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err);
+          setStatus("error", "Something went wrong. Please try again.");
+          // Optional: Log detailed error for devs
+          console.error("n8n webhook error:", msg);
+        } finally {
+          submitBtn.classList.remove("is-loading");
+          submitBtn.disabled = false;
+        }
+      });
+      $("#year").textContent = new Date().getFullYear();
+      // Small safety check: show guidance if webhook URL isn't replaced
+      if (WEBHOOK_URL === "YOUR_N8N_WEBHOOK_URL") {
+        // Keep it subtle (no intrusive alerts)
+        console.warn("Replace WEBHOOK_URL in index.html with your n8n webhook URL.");
+      }
+    </script>
+  </body>
+</html>
